@@ -102,6 +102,7 @@ Node::Node(
     carto::metrics::RegisterAllMetrics(metrics_registry_.get());
   }
 
+  // publisher
   submap_list_publisher_ =
       node_handle_.advertise<::cartographer_ros_msgs::SubmapList>(
           kSubmapListTopic, kLatestOnlyPublisherQueueSize);
@@ -119,12 +120,14 @@ Node::Node(
         node_handle_.advertise<::geometry_msgs::PoseStamped>(
             kTrackedPoseTopic, kLatestOnlyPublisherQueueSize);
   }
+
+  // service，给用户的接口
   service_servers_.push_back(node_handle_.advertiseService(
       kSubmapQueryServiceName, &Node::HandleSubmapQuery, this));
   service_servers_.push_back(node_handle_.advertiseService(
       kTrajectoryQueryServiceName, &Node::HandleTrajectoryQuery, this));
   service_servers_.push_back(node_handle_.advertiseService(
-      kStartTrajectoryServiceName, &Node::HandleStartTrajectory, this));
+      kStartTrajectoryServiceName, &Node::HandleStartTrajectory, this)); // 增加一条轨迹
   service_servers_.push_back(node_handle_.advertiseService(
       kFinishTrajectoryServiceName, &Node::HandleFinishTrajectory, this));
   service_servers_.push_back(node_handle_.advertiseService(
@@ -138,6 +141,7 @@ Node::Node(
       node_handle_.advertise<sensor_msgs::PointCloud2>(
           kScanMatchedPointCloudTopic, kLatestOnlyPublisherQueueSize);
 
+  // timer，定时器
   wall_timers_.push_back(node_handle_.createWallTimer(
       ::ros::WallDuration(node_options_.submap_publish_period_sec),
       &Node::PublishSubmapList, this));
@@ -191,6 +195,7 @@ void Node::PublishSubmapList(const ::ros::WallTimerEvent& unused_timer_event) {
   submap_list_publisher_.publish(map_builder_bridge_.GetSubmapList());
 }
 
+// 外推器：由于激光和其他传感器的数据处理、匹配需要时间，数据是离散的、非实时的，于是需要根据imu、odom、之前pose推算速度，进而推算当前pose
 void Node::AddExtrapolator(const int trajectory_id,
                            const TrajectoryOptions& options) {
   constexpr double kExtrapolationEstimationTimeSec = 0.001;  // 1 ms
@@ -398,10 +403,10 @@ int Node::AddTrajectory(const TrajectoryOptions& options) {
   const std::set<cartographer::mapping::TrajectoryBuilderInterface::SensorId>
       expected_sensor_ids = ComputeExpectedSensorIds(options);
   const int trajectory_id =
-      map_builder_bridge_.AddTrajectory(expected_sensor_ids, options);
-  AddExtrapolator(trajectory_id, options);
-  AddSensorSamplers(trajectory_id, options);
-  LaunchSubscribers(options, trajectory_id);
+      map_builder_bridge_.AddTrajectory(expected_sensor_ids, options); // 增加轨迹
+  AddExtrapolator(trajectory_id, options); // 增加外推器，根据之前信息推算速度，进而推算当前pose
+  AddSensorSamplers(trajectory_id, options); // 增加数据采样器
+  LaunchSubscribers(options, trajectory_id); // 增加订阅器
   wall_timers_.push_back(node_handle_.createWallTimer(
       ::ros::WallDuration(kTopicMismatchCheckDelaySec),
       &Node::MaybeWarnAboutTopicMismatch, this, /*oneshot=*/true));
@@ -561,10 +566,10 @@ bool Node::HandleStartTrajectory(
     ::cartographer_ros_msgs::StartTrajectory::Request& request,
     ::cartographer_ros_msgs::StartTrajectory::Response& response) {
   TrajectoryOptions trajectory_options;
-  std::tie(std::ignore, trajectory_options) = LoadOptions(
+  std::tie(std::ignore, trajectory_options) = LoadOptions( // 加载配置参数
       request.configuration_directory, request.configuration_basename);
 
-  if (request.use_initial_pose) {
+  if (request.use_initial_pose) { // 初始pose
     const auto pose = ToRigid3d(request.initial_pose);
     if (!pose.IsValid()) {
       response.status.message =
@@ -598,7 +603,7 @@ bool Node::HandleStartTrajectory(
          .mutable_initial_trajectory_pose() = initial_trajectory_pose;
   }
 
-  if (!ValidateTrajectoryOptions(trajectory_options)) {
+  if (!ValidateTrajectoryOptions(trajectory_options)) { // 检测options是否合理的，不合理则及时反馈给用户
     response.status.message = "Invalid trajectory options.";
     LOG(ERROR) << response.status.message;
     response.status.code = cartographer_ros_msgs::StatusCode::INVALID_ARGUMENT;
@@ -606,7 +611,7 @@ bool Node::HandleStartTrajectory(
     response.status.message = "Topics are already used by another trajectory.";
     LOG(ERROR) << response.status.message;
     response.status.code = cartographer_ros_msgs::StatusCode::INVALID_ARGUMENT;
-  } else {
+  } else { // option合理
     response.status.message = "Success.";
     response.trajectory_id = AddTrajectory(trajectory_options);
     response.status.code = cartographer_ros_msgs::StatusCode::OK;
@@ -820,7 +825,7 @@ void Node::HandleLaserScanMessage(const int trajectory_id,
                                   const std::string& sensor_id,
                                   const sensor_msgs::LaserScan::ConstPtr& msg) {
   absl::MutexLock lock(&mutex_);
-  if (!sensor_samplers_.at(trajectory_id).rangefinder_sampler.Pulse()) {
+  if (!sensor_samplers_.at(trajectory_id).rangefinder_sampler.Pulse()) { // 数据采样器，防止高频率sensor_samplers_
     return;
   }
   map_builder_bridge_.sensor_bridge(trajectory_id)

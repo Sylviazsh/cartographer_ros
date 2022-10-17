@@ -52,26 +52,26 @@ void Run() {
   tf2_ros::Buffer tf_buffer{::ros::Duration(kTfBufferCacheTimeInSeconds)};
   tf2_ros::TransformListener tf(tf_buffer);
   NodeOptions node_options;
-  TrajectoryOptions trajectory_options;
+  TrajectoryOptions trajectory_options; // 传感器配置
   std::tie(node_options, trajectory_options) =
       LoadOptions(FLAGS_configuration_directory, FLAGS_configuration_basename);
 
   auto map_builder =
       cartographer::mapping::CreateMapBuilder(node_options.map_builder_options);
-  Node node(node_options, std::move(map_builder), &tf_buffer,
+  Node node(node_options, std::move(map_builder), &tf_buffer, // SLAM node
             FLAGS_collect_metrics);
-  if (!FLAGS_load_state_filename.empty()) {
+  if (!FLAGS_load_state_filename.empty()) { // 是否加载历史地图
     node.LoadState(FLAGS_load_state_filename, FLAGS_load_frozen_state);
   }
 
-  if (FLAGS_start_trajectory_with_default_topics) {
+  if (FLAGS_start_trajectory_with_default_topics) { // 是否以默认topic（从配置中读取）开启trajectory
     node.StartTrajectoryWithDefaultTopics(trajectory_options);
   }
 
   ::ros::spin();
 
-  node.FinishAllTrajectories();
-  node.RunFinalOptimization();
+  node.FinishAllTrajectories(); // 结束
+  node.RunFinalOptimization(); // 结束后再做的优化
 
   if (!FLAGS_save_state_filename.empty()) {
     node.SerializeState(FLAGS_save_state_filename,
@@ -91,10 +91,10 @@ int main(int argc, char** argv) {
   CHECK(!FLAGS_configuration_basename.empty())
       << "-configuration_basename is missing.";
 
-  ::ros::init(argc, argv, "cartographer_node");
+  ::ros::init(argc, argv, "cartographer_node"); // 开头的::表示全局作用域
   ::ros::start();
 
-  cartographer_ros::ScopedRosLogSink ros_log_sink;
+  cartographer_ros::ScopedRosLogSink ros_log_sink; // 日志输出机制
   cartographer_ros::Run();
   ::ros::shutdown();
 }

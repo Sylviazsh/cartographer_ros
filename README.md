@@ -37,6 +37,10 @@ Getting started
 .. _our Read the Docs site: https://google-cartographer-ros.readthedocs.io
 .. _creating an issue: https://github.com/cartographer-project/cartographer_ros/issues/new?labels=question
 
+My note
+===============
+- 主函数：node_main.cc
+
 Contributing
 ============
 

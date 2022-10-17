@@ -186,7 +186,7 @@ void SensorBridge::HandleLaserScanMessage(
     const std::string& sensor_id, const sensor_msgs::LaserScan::ConstPtr& msg) {
   carto::sensor::PointCloudWithIntensities point_cloud;
   carto::common::Time time;
-  std::tie(point_cloud, time) = ToPointCloudWithIntensities(*msg);
+  std::tie(point_cloud, time) = ToPointCloudWithIntensities(*msg); // 把ros的消息类型转换成cartographer需要的消息类型
   HandleLaserScan(sensor_id, time, msg->header.frame_id, point_cloud);
 }
 
@@ -219,7 +219,7 @@ void SensorBridge::HandleLaserScan(
   }
   CHECK_LE(points.points.back().time, 0.f);
   // TODO(gaschler): Use per-point time instead of subdivisions.
-  for (int i = 0; i != num_subdivisions_per_laser_scan_; ++i) {
+  for (int i = 0; i != num_subdivisions_per_laser_scan_; ++i) { // 把一帧点云分成几份，为了处理点云的畸变
     const size_t start_index =
         points.points.size() * i / num_subdivisions_per_laser_scan_;
     const size_t end_index =
@@ -248,7 +248,7 @@ void SensorBridge::HandleLaserScan(
       point.time -= time_to_subdivision_end;
     }
     CHECK_EQ(subdivision.back().time, 0.f);
-    HandleRangefinder(sensor_id, subdivision_time, frame_id, subdivision);
+    HandleRangefinder(sensor_id, subdivision_time, frame_id, subdivision); // 处理点云
   }
 }
 
@@ -256,7 +256,7 @@ void SensorBridge::HandleRangefinder(
     const std::string& sensor_id, const carto::common::Time time,
     const std::string& frame_id, const carto::sensor::TimedPointCloud& ranges) {
   if (!ranges.empty()) {
-    CHECK_LE(ranges.back().time, 0.f);
+    CHECK_LE(ranges.back().time, 0.f); // 检查最后一个点的时间是否为0，正常情况应该都为0。LE即lower equation,意为小于等于
   }
   const auto sensor_to_tracking =
       tf_bridge_.LookupToTracking(time, CheckNoLeadingSlash(frame_id));

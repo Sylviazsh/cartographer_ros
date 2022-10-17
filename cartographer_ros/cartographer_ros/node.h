@@ -181,7 +181,7 @@ class Node {
 
   absl::Mutex mutex_;
   std::unique_ptr<cartographer_ros::metrics::FamilyFactory> metrics_registry_;
-  MapBuilderBridge map_builder_bridge_ GUARDED_BY(mutex_);
+  MapBuilderBridge map_builder_bridge_ GUARDED_BY(mutex_); // 线程安全注解，GUARDED_BY声明数据成员受给定功能保护。对数据的读取操作需要共享访问，而写入操作需要独占访问。
 
   ::ros::NodeHandle node_handle_;
   ::ros::Publisher submap_list_publisher_;
