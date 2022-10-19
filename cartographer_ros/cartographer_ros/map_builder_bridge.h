@@ -49,17 +49,17 @@ namespace cartographer_ros {
 
 class MapBuilderBridge {
  public:
-  struct LocalTrajectoryData {
+  struct LocalTrajectoryData { // local SLAM处理后的结果
     // Contains the trajectory data received from local SLAM, after
     // it had processed accumulated 'range_data_in_local' and estimated
     // current 'local_pose' at 'time'.
     struct LocalSlamData {
       ::cartographer::common::Time time;
-      ::cartographer::transform::Rigid3d local_pose;
-      ::cartographer::sensor::RangeData range_data_in_local;
+      ::cartographer::transform::Rigid3d local_pose; // 优化匹配结果，在submap局部坐标系中的位姿
+      ::cartographer::sensor::RangeData range_data_in_local; // 激光数据
     };
     std::shared_ptr<const LocalSlamData> local_slam_data;
-    cartographer::transform::Rigid3d local_to_map;
+    cartographer::transform::Rigid3d local_to_map; // submap到global_map的坐标变换关系
     std::unique_ptr<cartographer::transform::Rigid3d> published_to_tracking;
     TrajectoryOptions trajectory_options;
   };
@@ -70,7 +70,7 @@ class MapBuilderBridge {
       tf2_ros::Buffer* tf_buffer);
 
   MapBuilderBridge(const MapBuilderBridge&) = delete;
-  MapBuilderBridge& operator=(const MapBuilderBridge&) = delete;
+  MapBuilderBridge& operator=(const MapBuilderBridge&) = delete; // 重载赋值操作
 
   void LoadState(const std::string& state_filename, bool load_frozen_state);
   int AddTrajectory(

@@ -61,7 +61,7 @@ void Run() {
   Node node(node_options, std::move(map_builder), &tf_buffer, // SLAM node
             FLAGS_collect_metrics);
   if (!FLAGS_load_state_filename.empty()) { // 是否加载历史地图
-    node.LoadState(FLAGS_load_state_filename, FLAGS_load_frozen_state);
+    node.LoadState(FLAGS_load_state_filename, FLAGS_load_frozen_state); // 加载数据包数据
   }
 
   if (FLAGS_start_trajectory_with_default_topics) { // 是否以默认topic（从配置中读取）开启trajectory

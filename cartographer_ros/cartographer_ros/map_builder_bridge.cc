@@ -171,11 +171,11 @@ bool MapBuilderBridge::SerializeState(const std::string& filename,
 void MapBuilderBridge::HandleSubmapQuery(
     cartographer_ros_msgs::SubmapQuery::Request& request,
     cartographer_ros_msgs::SubmapQuery::Response& response) {
-  cartographer::mapping::proto::SubmapQuery::Response response_proto;
+  cartographer::mapping::proto::SubmapQuery::Response response_proto; // proto是Google提供的一个ProtoBuf库的工具Google Protobuf库，用来实现数据的序列化和反序列化
   cartographer::mapping::SubmapId submap_id{request.trajectory_id,
                                             request.submap_index};
   const std::string error =
-      map_builder_->SubmapToProto(submap_id, &response_proto);
+      map_builder_->SubmapToProto(submap_id, &response_proto); // 查询信息，结果放到response_proto中
   if (!error.empty()) {
     LOG(ERROR) << error;
     response.status.code = cartographer_ros_msgs::StatusCode::NOT_FOUND;

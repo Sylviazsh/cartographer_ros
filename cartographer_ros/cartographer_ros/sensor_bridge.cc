@@ -52,7 +52,7 @@ SensorBridge::SensorBridge(
 std::unique_ptr<carto::sensor::OdometryData> SensorBridge::ToOdometryData(
     const nav_msgs::Odometry::ConstPtr& msg) {
   const carto::common::Time time = FromRos(msg->header.stamp);
-  const auto sensor_to_tracking = tf_bridge_.LookupToTracking(
+  const auto sensor_to_tracking = tf_bridge_.LookupToTracking( // 返回变换矩阵
       time, CheckNoLeadingSlash(msg->child_frame_id));
   if (sensor_to_tracking == nullptr) {
     return nullptr;

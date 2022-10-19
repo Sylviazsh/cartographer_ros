@@ -105,7 +105,7 @@ Node::Node(
   // publisher
   submap_list_publisher_ =
       node_handle_.advertise<::cartographer_ros_msgs::SubmapList>(
-          kSubmapListTopic, kLatestOnlyPublisherQueueSize);
+          kSubmapListTopic, kLatestOnlyPublisherQueueSize); // kLatestOnlyPublisherQueueSize是pulish缓存大小=1
   trajectory_node_list_publisher_ =
       node_handle_.advertise<::visualization_msgs::MarkerArray>(
           kTrajectoryNodeListTopic, kLatestOnlyPublisherQueueSize);
@@ -122,7 +122,7 @@ Node::Node(
   }
 
   // service，给用户的接口
-  service_servers_.push_back(node_handle_.advertiseService(
+  service_servers_.push_back(node_handle_.advertiseService( // interesting，把service放在列表里 //? 有什么好处吗？确实可以减少重复定义的代码
       kSubmapQueryServiceName, &Node::HandleSubmapQuery, this));
   service_servers_.push_back(node_handle_.advertiseService(
       kTrajectoryQueryServiceName, &Node::HandleTrajectoryQuery, this));
@@ -419,7 +419,7 @@ int Node::AddTrajectory(const TrajectoryOptions& options) {
 void Node::LaunchSubscribers(const TrajectoryOptions& options,
                              const int trajectory_id) {
   for (const std::string& topic :
-       ComputeRepeatedTopicNames(kLaserScanTopic, options.num_laser_scans)) {
+       ComputeRepeatedTopicNames(kLaserScanTopic, options.num_laser_scans)) { // 订阅Laser发布的信息
     subscribers_[trajectory_id].push_back(
         {SubscribeWithHandler<sensor_msgs::LaserScan>(
              &Node::HandleLaserScanMessage, trajectory_id, topic, &node_handle_,
