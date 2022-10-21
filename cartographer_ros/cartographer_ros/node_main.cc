@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "absl/memory/memory.h"
+#include "absl/memory/memory.h" // absl是谷歌开源出来的一个C++标准库的扩充[参考:https://blog.csdn.net/zhghost/article/details/122613091]
 #include "cartographer/mapping/map_builder.h"
 #include "cartographer_ros/node.h"
 #include "cartographer_ros/node_options.h"
@@ -22,6 +22,7 @@
 #include "gflags/gflags.h"
 #include "tf2_ros/transform_listener.h"
 
+// 使用函数google::ParseCommandLineFlags初始化运行参数，需要先通过gflags的宏来定义参数对象(main函数的输入)
 DEFINE_bool(collect_metrics, false,
             "Activates the collection of runtime metrics. If activated, the "
             "metrics can be accessed via a ROS service.");
@@ -48,24 +49,22 @@ namespace cartographer_ros {
 namespace {
 
 void Run() {
-  constexpr double kTfBufferCacheTimeInSeconds = 10.;
+  constexpr double kTfBufferCacheTimeInSeconds = 10.; // 缓存的时间长度。constexpr验证是否为常量表达式，目的是将运算尽量放在编译阶段，而不是运行阶段
   tf2_ros::Buffer tf_buffer{::ros::Duration(kTfBufferCacheTimeInSeconds)};
   tf2_ros::TransformListener tf(tf_buffer);
   NodeOptions node_options;
   TrajectoryOptions trajectory_options; // 传感器配置
-  std::tie(node_options, trajectory_options) =
-      LoadOptions(FLAGS_configuration_directory, FLAGS_configuration_basename);
+  std::tie(node_options, trajectory_options) = LoadOptions(FLAGS_configuration_directory, FLAGS_configuration_basename); // tie:创建左值引用的元组tuple
 
-  auto map_builder =
-      cartographer::mapping::CreateMapBuilder(node_options.map_builder_options);
-  Node node(node_options, std::move(map_builder), &tf_buffer, // SLAM node
-            FLAGS_collect_metrics);
+  auto map_builder = cartographer::mapping::CreateMapBuilder(node_options.map_builder_options);
+  Node node(node_options, std::move(map_builder), &tf_buffer, FLAGS_collect_metrics); // std::move将参数转换为右值引用，右值引用可以进行读写操作，减少对象的构造
+            
   if (!FLAGS_load_state_filename.empty()) { // 是否加载历史地图
     node.LoadState(FLAGS_load_state_filename, FLAGS_load_frozen_state); // 加载数据包数据
   }
 
   if (FLAGS_start_trajectory_with_default_topics) { // 是否以默认topic（从配置中读取）开启trajectory
-    node.StartTrajectoryWithDefaultTopics(trajectory_options);
+    node.StartTrajectoryWithDefaultTopics(trajectory_options); // 开始轨迹跟踪
   }
 
   ::ros::spin();
@@ -74,8 +73,7 @@ void Run() {
   node.RunFinalOptimization(); // 结束后再做的优化
 
   if (!FLAGS_save_state_filename.empty()) {
-    node.SerializeState(FLAGS_save_state_filename,
-                        true /* include_unfinished_submaps */);
+    node.SerializeState(FLAGS_save_state_filename, true /* include_unfinished_submaps */);
   }
 }
 
@@ -83,13 +81,11 @@ void Run() {
 }  // namespace cartographer_ros
 
 int main(int argc, char** argv) {
-  google::InitGoogleLogging(argv[0]);
-  google::ParseCommandLineFlags(&argc, &argv, true);
+  google::InitGoogleLogging(argv[0]); // 初始化谷歌的日志系统glog
+  google::ParseCommandLineFlags(&argc, &argv, true); // 解析输入
 
-  CHECK(!FLAGS_configuration_directory.empty())
-      << "-configuration_directory is missing.";
-  CHECK(!FLAGS_configuration_basename.empty())
-      << "-configuration_basename is missing.";
+  CHECK(!FLAGS_configuration_directory.empty()) << "-configuration_directory is missing."; // 检查是否在运行参数中指定了配置文件和目录
+  CHECK(!FLAGS_configuration_basename.empty()) << "-configuration_basename is missing.";
 
   ::ros::init(argc, argv, "cartographer_node"); // 开头的::表示全局作用域
   ::ros::start();

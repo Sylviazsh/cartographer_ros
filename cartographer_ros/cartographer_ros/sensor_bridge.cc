@@ -154,7 +154,7 @@ std::unique_ptr<carto::sensor::ImuData> SensorBridge::ToImuData(
   if (sensor_to_tracking == nullptr) {
     return nullptr;
   }
-  CHECK(sensor_to_tracking->translation().norm() < 1e-5)
+  CHECK(sensor_to_tracking->translation().norm() < 1e-5) // IMU坐标系原点应当尽量与机器人坐标系重合
       << "The IMU frame must be colocated with the tracking frame. "
          "Transforming linear acceleration into the tracking frame will "
          "otherwise be imprecise.";
@@ -226,7 +226,7 @@ void SensorBridge::HandleLaserScan(
         points.points.size() * (i + 1) / num_subdivisions_per_laser_scan_;
     carto::sensor::TimedPointCloud subdivision(
         points.points.begin() + start_index, points.points.begin() + end_index);
-    if (start_index == end_index) {
+    if (start_index == end_index) { // 跳过同一个分段中的元素
       continue;
     }
     const double time_to_subdivision_end = subdivision.back().time;
@@ -248,7 +248,7 @@ void SensorBridge::HandleLaserScan(
       point.time -= time_to_subdivision_end;
     }
     CHECK_EQ(subdivision.back().time, 0.f);
-    HandleRangefinder(sensor_id, subdivision_time, frame_id, subdivision); // 处理点云
+    HandleRangefinder(sensor_id, subdivision_time, frame_id, subdivision); // 将分段数据喂给Cartographer，处理点云
   }
 }
 
@@ -259,8 +259,8 @@ void SensorBridge::HandleRangefinder(
     CHECK_LE(ranges.back().time, 0.f); // 检查最后一个点的时间是否为0，正常情况应该都为0。LE即lower equation,意为小于等于
   }
   const auto sensor_to_tracking =
-      tf_bridge_.LookupToTracking(time, CheckNoLeadingSlash(frame_id));
-  if (sensor_to_tracking != nullptr) {
+      tf_bridge_.LookupToTracking(time, CheckNoLeadingSlash(frame_id)); // 查询传感器坐标系相对于机器人坐标系之间的坐标变换
+  if (sensor_to_tracking != nullptr) { // 不是空指针，说明成功找到转换关系
     if (IgnoreMessage(sensor_id, time)) {
       LOG(WARNING) << "Ignored Rangefinder message from sensor " << sensor_id
                    << " because sensor time " << time

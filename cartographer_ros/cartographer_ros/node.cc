@@ -98,13 +98,13 @@ Node::Node(
       map_builder_bridge_(node_options_, std::move(map_builder), tf_buffer) {
   absl::MutexLock lock(&mutex_);
   if (collect_metrics) {
-    metrics_registry_ = absl::make_unique<metrics::FamilyFactory>();
+    metrics_registry_ = absl::make_unique<metrics::FamilyFactory>(); //? 干嘛的？
     carto::metrics::RegisterAllMetrics(metrics_registry_.get());
   }
 
   // publisher
   submap_list_publisher_ =
-      node_handle_.advertise<::cartographer_ros_msgs::SubmapList>(
+      node_handle_.advertise<::cartographer_ros_msgs::SubmapList>( // Ros官方教程中ros1用advertise，ros2用create_publisher
           kSubmapListTopic, kLatestOnlyPublisherQueueSize); // kLatestOnlyPublisherQueueSize是pulish缓存大小=1
   trajectory_node_list_publisher_ =
       node_handle_.advertise<::visualization_msgs::MarkerArray>(
@@ -206,8 +206,8 @@ void Node::AddExtrapolator(const int trajectory_id,
                 .imu_gravity_time_constant()
           : options.trajectory_builder_options.trajectory_builder_2d_options()
                 .imu_gravity_time_constant();
-  extrapolators_.emplace(
-      std::piecewise_construct, std::forward_as_tuple(trajectory_id),
+  extrapolators_.emplace( // 通过参数直接构造，避免拷贝和移动。insert会产生一个临时变量
+      std::piecewise_construct, std::forward_as_tuple(trajectory_id), // map的分段构造
       std::forward_as_tuple(
           ::cartographer::common::FromSeconds(kExtrapolationEstimationTimeSec),
           gravity_time_constant));
@@ -825,7 +825,7 @@ void Node::HandleLaserScanMessage(const int trajectory_id,
                                   const std::string& sensor_id,
                                   const sensor_msgs::LaserScan::ConstPtr& msg) {
   absl::MutexLock lock(&mutex_);
-  if (!sensor_samplers_.at(trajectory_id).rangefinder_sampler.Pulse()) { // 数据采样器，防止高频率sensor_samplers_
+  if (!sensor_samplers_.at(trajectory_id).rangefinder_sampler.Pulse()) { // 数据降采样，防止高频率sensor_samplers_
     return;
   }
   map_builder_bridge_.sensor_bridge(trajectory_id)

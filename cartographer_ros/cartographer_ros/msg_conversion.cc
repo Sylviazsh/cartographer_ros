@@ -132,6 +132,7 @@ float GetFirstEcho(const sensor_msgs::LaserEcho& echo) {
 template <typename LaserMessageType>
 std::tuple<PointCloudWithIntensities, ::cartographer::common::Time>
 LaserScanToPointCloudWithIntensities(const LaserMessageType& msg) {
+  // 检查数据是否合法
   CHECK_GE(msg.range_min, 0.f);
   CHECK_GE(msg.range_max, msg.range_min);
   if (msg.angle_increment > 0.f) {
@@ -139,19 +140,20 @@ LaserScanToPointCloudWithIntensities(const LaserMessageType& msg) {
   } else {
     CHECK_GT(msg.angle_min, msg.angle_max);
   }
+  // 依次计算各个测量数据在机器人坐标系下的坐标点和数据强度， 并将之添加到对象point_cloud中
   PointCloudWithIntensities point_cloud;
   float angle = msg.angle_min;
   for (size_t i = 0; i < msg.ranges.size(); ++i) {
     const auto& echoes = msg.ranges[i];
-    if (HasEcho(echoes)) {
+    if (HasEcho(echoes)) { // 用HasEcho检查一下
       const float first_echo = GetFirstEcho(echoes);
-      if (msg.range_min <= first_echo && first_echo <= msg.range_max) {
+      if (msg.range_min <= first_echo && first_echo <= msg.range_max) { // 检查在一定范围内，计算坐标
         const Eigen::AngleAxisf rotation(angle, Eigen::Vector3f::UnitZ());
         const cartographer::sensor::TimedRangefinderPoint point{
             rotation * (first_echo * Eigen::Vector3f::UnitX()),
             i * msg.time_increment};
         point_cloud.points.push_back(point);
-        if (msg.intensities.size() > 0) {
+        if (msg.intensities.size() > 0) { // 检查是否提供了数据强度。如果提供，就将该数据填充到局部对象point_cloud中，否则写0
           CHECK_EQ(msg.intensities.size(), msg.ranges.size());
           const auto& echo_intensities = msg.intensities[i];
           CHECK(HasEcho(echo_intensities));
@@ -161,8 +163,9 @@ LaserScanToPointCloudWithIntensities(const LaserMessageType& msg) {
         }
       }
     }
-    angle += msg.angle_increment;
+    angle += msg.angle_increment; // 增加angle获取下一个测量数据所对应的扫描角度
   }
+  // 调整时间戳，以数据采样结束为参考
   ::cartographer::common::Time timestamp = FromRos(msg.header.stamp);
   if (!point_cloud.points.empty()) {
     const double duration = point_cloud.points.back().time;
