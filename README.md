@@ -1,64 +1,58 @@
-.. Copyright 2016 The Cartographer Authors
 
-.. Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-..      http://www.apache.org/licenses/LICENSE-2.0
-
-.. Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-
-============================
 Cartographer ROS Integration
 ============================
-
-|build| |docs| |license|
 
 Purpose
 =======
 
-`Cartographer`_ is a system that provides real-time simultaneous localization
-and mapping (`SLAM`_) in 2D and 3D across multiple platforms and sensor
+[`Cartographer`](https://github.com/cartographer-project/cartographer) is a system that provides real-time simultaneous localization
+and mapping ([`SLAM`](https://en.wikipedia.org/wiki/Simultaneous_localization_and_mapping)) in 2D and 3D across multiple platforms and sensor
 configurations. This project provides Cartographer's ROS integration.
-
-.. _Cartographer: https://github.com/cartographer-project/cartographer
-.. _SLAM: https://en.wikipedia.org/wiki/Simultaneous_localization_and_mapping
 
 Getting started
 ===============
 
-* Learn to use Cartographer with ROS at `our Read the Docs site`_.
-* You can ask a question by `creating an issue`_.
-
-.. _our Read the Docs site: https://google-cartographer-ros.readthedocs.io
-.. _creating an issue: https://github.com/cartographer-project/cartographer_ros/issues/new?labels=question
+* Learn to use Cartographer with ROS at [`our Read the Docs site`](https://google-cartographer-ros.readthedocs.io).
+* You can ask a question by [`creating an issue`](https://github.com/cartographer-project/cartographer_ros/issues/new?labels=question).
 
 My note
 ===============
-- 主函数：node_main.cc
+- 参考博客：
+    - [无处不在的小土：Cartographer源码解读](https://gaoyichao.com/Xiaotu/?book=Cartographer%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB&title=index)
+    - [知乎-AprilLee：cartographer源码详细解读](https://www.zhihu.com/column/c_1040559544505704448)
+- 函数关系：[飞书文档：Cartographer函数](https://b2ggynj5jr.feishu.cn/mindnotes/bmncnT9KdRDtQvNqVeorjjhamff)
+
+
+运行rosbag
+=========
+1. 2D demo
+```
+roslaunch cartographer_ros demo_backpack_2d.launch bag_filename:=${HOME}/Downloads/cartographer_paper_deutsches_museum.bag
+```
+2. Pure localization
+    1. Generate the map
+    ```
+    roslaunch cartographer_ros offline_backpack_2d.launch bag_filenames:=${HOME}/Downloads/b2-2016-04-05-14-44-52.bag
+    ```
+    2. pure localization
+    ```
+    roslaunch cartographer_ros demo_backpack_2d_localization.launch \
+   load_state_filename:=${HOME}/Downloads/b2-2016-04-05-14-44-52.bag.pbstream \
+   bag_filename:=${HOME}/Downloads/b2-2016-04-27-12-31-41.bag
+    ```
+
+2. Revo LDS: an example bag captured from a low-cost Revo Laser Distance Sensor from Neato Robotics vacuum cleaners
+```
+roslaunch cartographer_ros demo_revo_lds.launch bag_filename:=${HOME}/Downloads/cartographer_paper_revo_lds.bag
+```
+3. Taurob Tracker: an example bag captured from a Taurob Tracker teleoperation robot
+```
+roslaunch cartographer_ros demo_taurob_tracker.launch bag_filename:=${HOME}/Downloads/taurob_tracker_simulation.bag
+```
 
 Contributing
 ============
 
 You can find information about contributing to Cartographer's ROS integration
-at `our Contribution page`_.
-
-.. _our Contribution page: https://github.com/cartographer-project/cartographer_ros/blob/master/CONTRIBUTING.md
-
-.. |build| image:: https://travis-ci.org/cartographer-project/cartographer_ros.svg?branch=master
-    :alt: Build Status
-    :scale: 100%
-    :target: https://travis-ci.org/cartographer-project/cartographer_ros
-.. |docs| image:: https://readthedocs.org/projects/google-cartographer-ros/badge/?version=latest
-    :alt: Documentation Status
-    :scale: 100%
-    :target: https://google-cartographer-ros.readthedocs.io/en/latest/?badge=latest
-.. |license| image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
-     :alt: Apache 2 license.
-     :scale: 100%
-     :target: https://github.com/cartographer-project/cartographer_ros/blob/master/LICENSE
+at [`our Contribution page`](https://github.com/cartographer-project/cartographer_ros/blob/master/CONTRIBUTING.md).
 

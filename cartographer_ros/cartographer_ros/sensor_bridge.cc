@@ -186,7 +186,7 @@ void SensorBridge::HandleLaserScanMessage(
     const std::string& sensor_id, const sensor_msgs::LaserScan::ConstPtr& msg) {
   carto::sensor::PointCloudWithIntensities point_cloud;
   carto::common::Time time;
-  std::tie(point_cloud, time) = ToPointCloudWithIntensities(*msg); // 把ros的消息类型转换成cartographer需要的消息类型
+  std::tie(point_cloud, time) = ToPointCloudWithIntensities(*msg); // 把ros的消息类型转换成cartographer需要的消息类型，std::tie：创建左值引用的tuple
   HandleLaserScan(sensor_id, time, msg->header.frame_id, point_cloud);
 }
 

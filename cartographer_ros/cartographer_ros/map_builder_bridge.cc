@@ -129,7 +129,7 @@ int MapBuilderBridge::AddTrajectory(
              ::cartographer::sensor::RangeData range_data_in_local,
              const std::unique_ptr<
                  const ::cartographer::mapping::TrajectoryBuilderInterface::
-                     InsertionResult>) {
+                     InsertionResult>) { //? 为什么最后一个参数只有类型没有函数名
         OnLocalSlamResult(trajectory_id, time, local_pose, range_data_in_local);
       });
   LOG(INFO) << "Added trajectory with ID '" << trajectory_id << "'.";
@@ -524,6 +524,12 @@ SensorBridge* MapBuilderBridge::sensor_bridge(const int trajectory_id) {
   return sensor_bridges_.at(trajectory_id).get();
 }
 
+/**
+ * @param trajectory_id 轨迹索引
+ * @param time 更新子图的时间
+ * @param local_pose 子图的参考位置
+ * @param range_data_in_local 参考位置下的扫描数据
+*/
 void MapBuilderBridge::OnLocalSlamResult(
     const int trajectory_id, const ::cartographer::common::Time time,
     const Rigid3d local_pose,
