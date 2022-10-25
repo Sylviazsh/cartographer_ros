@@ -117,7 +117,7 @@ sensor_msgs::PointCloud2 PreparePointCloud2Message(const int64_t timestamp,
 // For sensor_msgs::LaserScan.
 bool HasEcho(float) { return true; }
 
-float GetFirstEcho(float range) { return range; }
+float GetFirstEcho(float range) { return range; } // 不是MultiEchoLaserScan，所以只有一个，直接返回即可
 
 // For sensor_msgs::MultiEchoLaserScan.
 bool HasEcho(const sensor_msgs::LaserEcho& echo) {
@@ -150,7 +150,7 @@ LaserScanToPointCloudWithIntensities(const LaserMessageType& msg) {
       if (msg.range_min <= first_echo && first_echo <= msg.range_max) { // 检查在一定范围内，计算坐标
         const Eigen::AngleAxisf rotation(angle, Eigen::Vector3f::UnitZ());
         const cartographer::sensor::TimedRangefinderPoint point{
-            rotation * (first_echo * Eigen::Vector3f::UnitX()),
+            rotation * (first_echo * Eigen::Vector3f::UnitX()), // X轴的正方向是机器人的前进方向，构建一个X轴方向上的运动矢量。左乘旋转矩阵得到扫描点在机器人坐标系下的坐标
             i * msg.time_increment};
         point_cloud.points.push_back(point);
         if (msg.intensities.size() > 0) { // 检查是否提供了数据强度。如果提供，就将该数据填充到局部对象point_cloud中，否则写0

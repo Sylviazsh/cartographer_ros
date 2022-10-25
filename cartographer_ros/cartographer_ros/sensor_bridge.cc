@@ -39,6 +39,14 @@ const std::string& CheckNoLeadingSlash(const std::string& frame_id) {
 
 }  // namespace
 
+/**
+ * @param num_subdivisions_per_laser_scan 激光雷达数据分段数量
+ * @param ignore_out_of_order_messages
+ * @param tracking_frame 参考坐标系
+ * @param lookup_transform_timeout_sec tf坐标变换查询超时设置
+ * @param tf_buffer tf坐标变换缓存
+ * @param trajectory_builder 轨迹构建器
+*/
 SensorBridge::SensorBridge(
     const int num_subdivisions_per_laser_scan,
     const bool ignore_out_of_order_messages, const std::string& tracking_frame,
