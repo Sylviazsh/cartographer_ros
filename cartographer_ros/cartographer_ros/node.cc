@@ -206,7 +206,7 @@ void Node::AddExtrapolator(const int trajectory_id,
                 .imu_gravity_time_constant()
           : options.trajectory_builder_options.trajectory_builder_2d_options()
                 .imu_gravity_time_constant();
-  extrapolators_.emplace( // 通过参数直接构造，避免拷贝和移动。insert会产生一个临时变量
+  extrapolators_.emplace( // emplace通过参数直接构造，避免拷贝和移动。insert会产生一个临时变量
       std::piecewise_construct, std::forward_as_tuple(trajectory_id), // map的分段构造
       std::forward_as_tuple(
           ::cartographer::common::FromSeconds(kExtrapolationEstimationTimeSec),

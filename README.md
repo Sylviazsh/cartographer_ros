@@ -18,6 +18,7 @@ Getting started
 My note
 ===============
 - 参考博客：
+    - [cartographer 超详细注释代码](https://github.com/xiangli0608/cartographer_detailed_comments_ws)
     - [无处不在的小土：Cartographer源码解读](https://gaoyichao.com/Xiaotu/?book=Cartographer%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB&title=index)
     - [知乎-AprilLee：cartographer源码详细解读](https://www.zhihu.com/column/c_1040559544505704448)
 - 函数关系：[飞书文档：Cartographer函数](https://b2ggynj5jr.feishu.cn/mindnotes/bmncnT9KdRDtQvNqVeorjjhamff)

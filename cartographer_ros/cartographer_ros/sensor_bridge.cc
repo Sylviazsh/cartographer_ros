@@ -277,7 +277,7 @@ void SensorBridge::HandleRangefinder(
       return;
     }
     latest_sensor_time_[sensor_id] = time;
-    trajectory_builder_->AddSensorData(
+    trajectory_builder_->AddSensorData( // trajectory_builder_是CollatedTrajectoryBuilder, 在MapBuilder::AddTrajectoryBuilder中push_back进trajectory_builders_，再在MapBuilderBridge::AddTrajectory中赋给trajectory_builder_
         sensor_id, carto::sensor::TimedPointCloudData{
                        time, sensor_to_tracking->translation().cast<float>(),
                        carto::sensor::TransformTimedPointCloud(
